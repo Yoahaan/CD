@@ -1,0 +1,38 @@
+%{
+#include <stdio.h>
+extern FILE *yyin;
+int line = 0;
+%}
+
+%%
+
+"int" | "float" | "double" | "char"| "for"| "while" | "if"   {printf("k {printf("%d %s Keyword  %s\n", line+1, yytext,yytext)
+[a-zA-Z_][a-zA-z0-9_]*  {printf("%d %s Identifier %s\n", line+1, yytext,yytext);}
+[0-9]+ {printf("%d %s Number %s\n", line+1, yytext,yytext);}
+"+" | "-" | "*" | "/"        {printf("%d %s Number %s\n", line+1, yytext,yytext);}
+[\t]+ {}
+[\n]+ {line++;}
+. {}
+
+
+%%
+
+int main()
+{
+yyin = fopen("input.txt", "r");
+if(!yyin)
+{
+printf("Error opening file!");
+return 1;
+}
+printf("LINE NO\tLEXEME\tTOKEN TYPE\tTOKEN VALUE\n");
+
+yylex();
+fclose(yyin);
+return 0;
+}
+
+int yywrap()
+{
+return 1;
+}
