@@ -3,7 +3,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
 
-public class HandwrittenlexerC {
+public class handwrittenlexerc {
 
     public static class Token {
         public final int lineNumber;
