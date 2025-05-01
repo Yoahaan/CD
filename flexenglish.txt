@@ -1,0 +1,54 @@
+%{
+#include <stdio.h>
+int line = 0;
+extern FILE *yyin;
+%}
+
+%%
+
+[\n]+                              { line++; }
+
+[0-9]+                             { printf("%d\t%s\tNumber\n", line + 1, yytext); }
+
+"the"|"a"|"an"                     { printf("%d\t%s\tArticle\n", line + 1, yytext); }
+
+"is"|"are"|"was"|"were"|"be"|"been"|"am" {
+                                     printf("%d\t%s\tVerb\n", line + 1, yytext); }
+
+"run"|"walk"|"eat"|"read"|"write" {
+                                     printf("%d\t%s\tVerb\n", line + 1, yytext); }
+
+"he"|"she"|"they"|"it"|"we"|"I"|"you" {
+                                     printf("%d\t%s\tPronoun\n", line + 1, yytext); }
+
+"on"|"in"|"at"|"by"|"with"|"to"    { printf("%d\t%s\tPreposition\n", line + 1, yytext); }
+
+"apple"|"book"|"man"|"woman"|"cat"|"dog" {
+                                     printf("%d\t%s\tNoun\n", line + 1, yytext); }
+
+[.,!?]                             { printf("%d\t%s\tPunctuation\n", line + 1, yytext); }
+
+[ \t]+                             { /* Ignore whitespace */ }
+
+[a-zA-Z]+                          { printf("%d\t%s\tUnknown\n", line + 1, yytext); }
+
+.                                  { /* Ignore other characters */ }
+
+%%
+
+int main() {
+    yyin = fopen("input.txt", "r");
+    if (!yyin) {
+        printf("Error opening input file!\n");
+        return 1;
+    }
+
+    printf("Line\tLexeme\tToken\n");
+    yylex();
+    fclose(yyin);
+    return 0;
+}
+
+int yywrap() {
+    return 1;
+}
