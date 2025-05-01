@@ -1,0 +1,41 @@
+%{
+#include <stdio.h>
+int line = 0;
+extern FILE *yyin;
+%}
+
+%%
+
+[0-9]+                          { printf("%d\t%s\tNumber\n", line + 1, yytext); }
+
+"def"|"print"|"read"|"int"|"double" {
+                                 printf("%d\t%s\tKeyword\n", line + 1, yytext); }
+
+"+"|"-"|"*"|":"                 { printf("%d\t%s\tOperator\n", line + 1, yytext); }
+
+[\t]+                           { printf("%d\t%s\tIndentation\n", line + 1, yytext); }
+
+"("|")"                         { printf("%d\t%s\tBrace\n", line + 1, yytext); }
+
+[\n]+                           { line++; }
+
+.                               { /* Ignore other characters */ }
+
+%%
+
+int main() {
+    yyin = fopen("input.txt", "r");
+    if (!yyin) {
+        printf("Error opening input file!\n");
+        return 1;
+    }
+
+    printf("Line\tLexeme\tToken\n");
+    yylex();
+    fclose(yyin);
+    return 0;
+}
+
+int yywrap() {
+    return 1;
+}
