@@ -33,7 +33,7 @@ public class handwrittenlexerc {
                 "LBRACKET","RBRACKET","SEMICOLON","COMMA","DOT",
                 "STRING_LITERAL","CHAR_LITERAL","NUMBER","IDENTIFIER"
             ));
-            // Then reserved words in order
+            // Then reserved words
             TOKEN_VALUES.addAll(List.of(
                 "auto","break","case","char","const","continue","default","do","double",
                 "else","enum","extern","float","for","goto","if","inline","int","long",
@@ -60,44 +60,65 @@ public class handwrittenlexerc {
         public static List<Token> tokenize(String input) {
             List<Token> tokens = new ArrayList<>();
             Pattern p = Pattern.compile(TOKEN_REGEX);
-            Matcher m = p.matcher(input);
+            int pos = 0;
             int line = 1;
 
-            while (m.find()) {
-                String lex = m.group();
-                // Determine which group matched
-                String type;
-                if (m.group(1) != null)       type = "WHITESPACE";
-                else if (m.group(2) != null)  type = "OPERATOR";
-                else if (m.group(3) != null)  type = "LBRACE";
-                else if (m.group(4) != null)  type = "RBRACE";
-                else if (m.group(5) != null)  type = "LPAREN";
-                else if (m.group(6) != null)  type = "RPAREN";
-                else if (m.group(7) != null)  type = "LBRACKET";
-                else if (m.group(8) != null)  type = "RBRACKET";
-                else if (m.group(9) != null)  type = "SEMICOLON";
-                else if (m.group(10) != null) type = "COMMA";
-                else if (m.group(11) != null) type = "DOT";
-                else if (m.group(12) != null) type = "STRING_LITERAL";
-                else if (m.group(13) != null) type = "CHAR_LITERAL";
-                else if (m.group(14) != null) type = "NUMBER";
-                else                           type = "IDENTIFIER";
+            while (pos < input.length()) {
+                Matcher m = p.matcher(input);
+                m.region(pos, input.length());
+                if (m.lookingAt()) {
+                    String lex = m.group();
+                    String type;
+                    if (m.group(1) != null)      type = "WHITESPACE";
+                    else if (m.group(2) != null) type = "OPERATOR";
+                    else if (m.group(3) != null) type = "LBRACE";
+                    else if (m.group(4) != null) type = "RBRACE";
+                    else if (m.group(5) != null) type = "LPAREN";
+                    else if (m.group(6) != null) type = "RPAREN";
+                    else if (m.group(7) != null) type = "LBRACKET";
+                    else if (m.group(8) != null) type = "RBRACKET";
+                    else if (m.group(9) != null) type = "SEMICOLON";
+                    else if (m.group(10) != null) type = "COMMA";
+                    else if (m.group(11) != null) type = "DOT";
+                    else if (m.group(12) != null) type = "STRING_LITERAL";
+                    else if (m.group(13) != null) type = "CHAR_LITERAL";
+                    else if (m.group(14) != null) type = "NUMBER";
+                    else                          type = "IDENTIFIER";
 
-                if ("WHITESPACE".equals(type)) {
-                    line += lex.chars().filter(c -> c=='\n').count();
-                    continue;
+                    if ("WHITESPACE".equals(type)) {
+                        line += lex.chars().filter(c -> c == '\n').count();
+                    } else {
+                        if ("IDENTIFIER".equals(type) && RESERVED_WORDS.contains(lex)) {
+                            type = lex;
+                        }
+
+                        int idx = TOKEN_VALUES.indexOf(type);
+                        String val = idx >= 0 ? String.valueOf(idx) : "-1";
+
+                        // Report misspelled keywords
+                        if ("IDENTIFIER".equals(type)) {
+                            for (String kw : RESERVED_WORDS) {
+                                if (lex.startsWith(kw) && !lex.equals(kw)) {
+                                    System.out.println(
+                                        "Lexical error: possible keyword typo '" + lex + "' at line " + line
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+
+                        tokens.add(new Token(line, lex, type, val));
+                    }
+                    pos = m.end();
+                } else {
+                    // No token matched: report the single bad char
+                    char bad = input.charAt(pos);
+                    System.out.println(
+                        "Lexical error: Unrecognized character '" + bad + "' at line " + line
+                    );
+                    if (bad == '\n') line++;
+                    pos++;
                 }
-
-                // Reserved word check
-                if ("IDENTIFIER".equals(type) && RESERVED_WORDS.contains(lex)) {
-                    type = lex;  // e.g. "int"
-                }
-
-                // tokenValue = index in TOKEN_VALUES
-                int idx = TOKEN_VALUES.indexOf(type);
-                String val = idx >= 0 ? String.valueOf(idx) : "-1";
-
-                tokens.add(new Token(line, lex, type, val));
             }
             return tokens;
         }
